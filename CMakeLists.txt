@@ -5,7 +5,7 @@ set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CUDA_ARCHITECTURES 61)
 
-find_package(CUDAToolkit)
+find_package(CUDAToolkit REQUIRED)
 find_package(OpenMP REQUIRED)
 
 add_library(cpu_mmul STATIC cpu_mmul.h cpu_mmul.cpp)
