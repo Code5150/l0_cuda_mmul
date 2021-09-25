@@ -67,6 +67,7 @@ void verify_result(const float *a, const float *b, const float *c, int N) {
             }
         }
     }
+    printf("Результаты корректны\n");
 }
 #ifdef LAB_DEBUG
 void print_matrix(const float* matrix, const size_t N) {
@@ -80,14 +81,12 @@ void print_matrix(const float* matrix, const size_t N) {
 #endif
 
 void scan_matrix_dim(int* matrix_dim) {
-    std::cout << "Введите размер матрицы (от 100 до 2000): ";
+    printf("Введите размер матрицы (от 100 до 2000): ");
     scanf_s("%d", matrix_dim);
-    std::cout << std::endl;
     while (*matrix_dim < 100 || *matrix_dim > 2000) {
-        std::cout <<"Неверный размер матрицы. "  << std::endl;
-        std::cout <<" Введите размер матрицы (от 100 до 2000): ";
+        printf("Неверный размер матрицы. %d не входит в интервал [100;2000]\n", *matrix_dim);
+        printf("Введите размер матрицы (от 100 до 2000): ");
         scanf_s("%d", matrix_dim);
-        std::cout << std::endl;
     }
 }
 
@@ -99,6 +98,7 @@ enum Options {
 };
 
 int main() {
+    setlocale(LC_ALL, "ru_RU.UTF-8");
 
     curandGenerator_t gen;
     cublasHandle_t HANDLE;
@@ -106,7 +106,6 @@ int main() {
 
     float *a, *b, *c, *c_buffer;
     float *cpuA, *cpuB, *cpuC;
-    setlocale(LC_ALL, "ru_RU.UTF-8");
 
     curandCreateGeneratorHost(&gen, CURAND_RNG_PSEUDO_MTGP32);
     curandSetPseudoRandomGeneratorSeed(gen, ULLCAST(clock()));
@@ -115,11 +114,11 @@ int main() {
     Options option = Options::NONE;
     bool main_cycle = true;
     while(main_cycle) {
-        std::cout << "Список действий:" << std::endl;
-        std::cout << "0 - выход из программы" << std::endl;
-        std::cout << "1 - умножение матриц на GPU" << std::endl;
-        std::cout << "2 - умножение матриц на CPU" << std::endl;
-        std::cout << "Выберите действие:" << std::endl;
+        printf("Список действий:\n");
+        printf("0 - выход из программы\n");
+        printf("1 - умножение матриц на GPU\n");
+        printf("2 - умножение матриц на CPU\n");
+        printf("Выберите действие:");
         scanf_s("%d", &option);
         switch (option) {
             case Options::PAR_MUL_GPU: {
@@ -168,7 +167,7 @@ int main() {
                 // Waiting to kernel finish
                 cudaEventSynchronize(stop);
                 cudaEventElapsedTime(&elapsedTime, start, stop);
-                printf("Время выполнения на GPU: %.10f milliseconds\n", elapsedTime);
+                printf("Время выполнения на GPU: %.6f мс\n", elapsedTime);
 
 #ifdef LAB_DEBUG
                 cudaMemcpy(cpuA, a, m_size, cudaMemcpyDeviceToHost);
@@ -205,7 +204,16 @@ int main() {
                 curandGenerateUniform(gen, cpuA, matrix_size);
                 curandGenerateUniform(gen, cpuB, matrix_size);
 
+#ifdef LAB_DEBUG
+                print_matrix(a, matrix_size);
+                print_matrix(b, matrix_size);
+#endif
+
                 cpu_mmul(cpuA, cpuB, cpuC, matrix_dim);
+
+#ifdef LAB_DEBUG
+                print_matrix(c, matrix_size);
+#endif
                 verify_result(cpuA, cpuB, cpuC, matrix_dim);
 
                 delete[] cpuA;
@@ -219,7 +227,7 @@ int main() {
                 break;
             }
             default: {
-                std::cout << "Данной опции не существует. Попробуйте ещё раз.\n";
+                printf("Данной опции не существует. Попробуйте ещё раз.\n");
                 break;
             }
         }

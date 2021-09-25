@@ -18,12 +18,5 @@ void cpu_mmul(const float *A, const float *B, float *C, int N) {
         }
     }
     auto end_time = omp_get_wtime();
-    printf("Времени затрачено: %f с\n", end_time-start_time);
-}
-
-void hello_omp(int th_n) {
-#pragma omp parallel num_threads(th_n)
-    {
-
-    }
+    printf("Время выполнения на CPU: %f с\n", end_time-start_time);
 }

@@ -10,7 +10,7 @@ find_package(OpenMP REQUIRED)
 
 add_library(cpu_mmul STATIC cpu_mmul.h cpu_mmul.cpp)
 target_link_libraries(cpu_mmul PUBLIC OpenMP::OpenMP_CXX)
-target_precompile_headers(cpu_mmul PUBLIC [["omp.h"]])
+target_precompile_headers(cpu_mmul PUBLIC [["omp.h"]] <cstdio>)
 
 add_executable(cuda_mmul main.cu)
 target_link_directories(cuda_mmul PUBLIC ${CUDAToolkit_LIBRARY_DIR})
