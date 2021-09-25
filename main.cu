@@ -5,6 +5,7 @@
 #include <cassert>
 #include <ctime>
 #include <iostream>
+#include "cpu_mmul.h"
 
 #define ULLCAST(X) static_cast<unsigned long long>(X)
 //#define LAB_DEBUG
@@ -78,10 +79,23 @@ void print_matrix(const float* matrix, const size_t N) {
 }
 #endif
 
+void scan_matrix_dim(int* matrix_dim) {
+    std::cout << "Введите размер матрицы (от 100 до 2000): ";
+    scanf_s("%d", matrix_dim);
+    std::cout << std::endl;
+    while (*matrix_dim < 100 || *matrix_dim > 2000) {
+        std::cout <<"Неверный размер матрицы. "  << std::endl;
+        std::cout <<" Введите размер матрицы (от 100 до 2000): ";
+        scanf_s("%d", matrix_dim);
+        std::cout << std::endl;
+    }
+}
+
 enum Options {
     NONE,
     EXIT = 0,
-    PAR_MUL = 1
+    PAR_MUL_GPU = 1,
+    PAR_MUL_CPU = 2
 };
 
 int main() {
@@ -103,20 +117,13 @@ int main() {
     while(main_cycle) {
         std::cout << "Список действий:" << std::endl;
         std::cout << "0 - выход из программы" << std::endl;
-        std::cout << "1 - умножение матриц" << std::endl;
+        std::cout << "1 - умножение матриц на GPU" << std::endl;
+        std::cout << "2 - умножение матриц на CPU" << std::endl;
         std::cout << "Выберите действие:" << std::endl;
         scanf_s("%d", &option);
         switch (option) {
-            case Options::PAR_MUL: {
-                std::cout << "Введите размер матрицы (от 100 до 2000): ";
-                scanf_s("%d", &matrix_dim);
-                std::cout << std::endl;
-                while (matrix_dim < 100 || matrix_dim > 2000) {
-                    std::cout <<"Неверный размер матрицы. "  << std::endl;
-                    std::cout <<" Введите размер матрицы (от 100 до 2000): ";
-                    scanf_s("%d", &matrix_dim);
-                    std::cout << std::endl;
-                }
+            case Options::PAR_MUL_GPU: {
+                scan_matrix_dim(&matrix_dim);
 
                 size_t matrix_size = matrix_dim*matrix_dim;
                 size_t m_size = malloc_size<float>(matrix_size);
@@ -179,6 +186,27 @@ int main() {
                 cudaFree(b);
                 cudaFree(c);
                 cudaFree(c_buffer);
+
+                delete[] cpuA;
+                delete[] cpuB;
+                delete[] cpuC;
+
+                break;
+            }
+            case Options::PAR_MUL_CPU: {
+                scan_matrix_dim(&matrix_dim);
+
+                size_t matrix_size = matrix_dim*matrix_dim;
+
+                cpuA = new float[matrix_size] {};
+                cpuB = new float[matrix_size] {};
+                cpuC = new float[matrix_size] {0.0f};
+
+                curandGenerateUniform(gen, cpuA, matrix_size);
+                curandGenerateUniform(gen, cpuB, matrix_size);
+
+                cpu_mmul(cpuA, cpuB, cpuC, matrix_dim);
+                verify_result(cpuA, cpuB, cpuC, matrix_dim);
 
                 delete[] cpuA;
                 delete[] cpuB;
